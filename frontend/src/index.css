@@ -1,0 +1,304 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f9f9f9;
+  color: #333;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Background for page */
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  background: #f9f9f9;
+  color: #333;
+}
+
+.heading {
+  color: #e63946;
+  font-weight: bold;
+}
+
+/* Centering the card */
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Card box */
+.auth-card {
+  width: 380px;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Heading */
+.auth-card h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #e63946;
+  /* SuperCook red */
+}
+
+/* Labels */
+.auth-card label {
+  display: block;
+  text-align: left;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: #444;
+  padding-left: 10px;
+}
+
+/* Inputs */
+.auth-card input {
+  width: 90%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  outline: none;
+  transition: 0.2s;
+}
+
+.auth-card input:focus {
+  border-color: #e63946;
+  box-shadow: 0 0 6px rgba(230, 57, 70, 0.3);
+}
+
+/* Button */
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  background: #e63946;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.auth-btn:hover {
+  background: #c72e3b;
+}
+
+/* Link */
+.auth-link {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.auth-link a {
+  color: #e63946;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
+
+/* Success message */
+.success-toast {
+  background: #d4edda;
+  color: #155724;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #c3e6cb;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Smooth fade */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Landing page background */
+.landing-container {
+  background-image: url("https://source.unsplash.com/1600x900/?food,recipe");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header (title left, buttons right) */
+.header {
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between; /* pushes title left, nav right */
+  align-items: center;           /* vertically center */
+}
+
+/* Title */
+.title {
+  font-weight: bold;
+  font-size: 1.8rem;
+  color: rgba(61, 50, 50, 0.621);
+
+}
+
+/* Navigation buttons */
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-btn {
+  background-color: #e63946;
+  color: white;
+  padding: 8px 16px; /* smaller neat buttons */
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  border: none;
+}
+
+
+
+.nav-btn:hover {
+  transform: scale(1.1);
+  background-color: #d62828;
+  cursor: pointer;
+}
+
+/* Center text */
+.content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.heading {
+  font-size: 3rem;
+  color: white;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.carousel {
+  width: 100%;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.carousel-track {
+  display: flex;
+  width: max-content;
+}
+
+.carousel-track img {
+  width: 300px;
+  height: 250px;
+  margin-right: 10px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Left to right scroll (reverse direction) */
+.scroll-left {
+  animation: scroll-left 20s linear infinite;
+}
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* adjust according to number of images */
+}
+
+/* Right to left scroll */
+.scroll-right {
+  animation: scroll-right 20s linear infinite;
+}
+
+@keyframes scroll-right {
+  0% { transform: translateX(-50%); } /* start from left shifted */
+  100% { transform: translateX(0); }
+}
+
+
+/* footer */
+.footer {
+  background-color: #222;
+  color: #fff;
+
+}
+
+.footer-content {
+  display: flex;              /* make columns side by side */
+  justify-content: space-between;
+  border-bottom: 0.5px solid #555;
+  padding-bottom: 10px;
+
+}
+
+.footer-column {
+  flex: 1;                    /* each column takes equal space */
+  padding: 0 10px;
+  border-right: 1px solid #555; /* vertical dividing line */
+}
+
+.footer-column:last-child {
+  border-right: none;
+}
+
+
+
+.footer-column p, .footer-column a {
+  margin: 5px 0;
+  color: #fff;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-column a:hover {
+  color: #ffcc00;
+}
+
+.footer .social-links a {
+  color: #fff;
+  margin: 0 5px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer .social-links a:hover {
+  color: #ffcc00;
+}
+
+
