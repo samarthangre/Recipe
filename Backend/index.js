@@ -8,6 +8,7 @@ import Groq from "groq-sdk";
 import helmet from "helmet";
 import axios from "axios";
 import recipeRoute from "./routes/recipeRoute.js";
+import chatRoute from "./routes/chatRoute.js";
 
 dotenv.config();
 const app = express();
@@ -26,6 +27,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// =====CHatbot Route ====== //
+app.use("/api", chatRoute);
 
 // ========= Recipe Save Route ========= //
 app.use("/api/recipes", recipeRoute);

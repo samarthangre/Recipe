@@ -9,6 +9,7 @@ import ProfilePage from './component/ProfilePage.jsx';
 import OurServices from './component/OurServices.jsx';
 import WhyChooseUs from './component/WhyChooseUs.jsx';
 import NutritionCard from './component/NutritionCard.jsx';
+import Chatbot from './component/Chatbot.jsx';
 
 
 const router = createBrowserRouter([
@@ -21,6 +22,8 @@ const router = createBrowserRouter([
   {path:"/OurServices", element:<OurServices/>},
   {path: "/whyChooseUs", element:<WhyChooseUs/>},
   {path: "/nutritionCard", element:<NutritionCard />},
+  {path: "/chatbot", element:<Chatbot/>},
+
 ]);
 
 function App() {

@@ -4,6 +4,7 @@ import { FaUserCircle, FaRobot } from "react-icons/fa";
 import { FaBookmark, FaShareAlt, FaStar } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import NutritionCard from "./NutritionCard.jsx";
+import Chatbot from "./Chatbot.jsx";
 
 function HomePage() {
     const [ingredients, setIngredients] = useState("");
@@ -20,6 +21,7 @@ function HomePage() {
         Rating: "",
     });
     const [showNutrition, setShowNutrition] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const filterOptions = {
         Cuisine: ["Indian", "Italian", "Chinese", "Mexican"],
@@ -84,6 +86,8 @@ function HomePage() {
                     name: r.title,
                     ingredientsList: trimmedIngredients.split(",").map(i => i.trim()), // ✅ store as array
                     image: r.image,
+                    orderLink: `https://www.zomato.com/search?q=${encodeURIComponent(r.title)}`, // Zomato search link
+                    videoLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(r.title + " recipe")}` // YouTube search
                 })));
             } else {
                 setRecipes([]);
@@ -122,7 +126,10 @@ function HomePage() {
 
     // ===== Fetch full recipe =====
     const fetchFullRecipe = async (recipe) => {
-        setSelectedRecipe({ name: recipe.name, content: "", ingredientsList: recipe.ingredientsList });
+        setSelectedRecipe({
+            name: recipe.name, content: "", ingredientsList: recipe.ingredientsList, videoLink: recipe.videoLink,
+            orderLink: recipe.orderLink
+        });
         setLoading(true);
 
         try {
@@ -216,7 +223,11 @@ function HomePage() {
                         <Link to="/profilePage">
                             <FaUserCircle className="cursor-pointer hover:text-orange-500" />
                         </Link>
-                        <FaRobot className="cursor-pointer hover:text-orange-500" />
+                        {/* ✅ Use FaRobot to toggle chatbot */}
+                        <FaRobot
+                            className="cursor-pointer hover:text-orange-500"
+                            onClick={() => setIsChatOpen(true)}
+                        />
                     </div>
                 </div>
 
@@ -341,12 +352,49 @@ function HomePage() {
                         {loading ? (
                             <p className="text-gray-500">⏳ Generating recipe...</p>
                         ) : selectedRecipe.content ? (
-                            <p className="whitespace-pre-line text-gray-700">{selectedRecipe.content}</p>
+                            <>
+                                {/* YouTube Link below recipe content */}
+                                {selectedRecipe.videoLink && (
+                                    <a
+                                        href={selectedRecipe.videoLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-red-500 underline mt-4 inline-block"
+                                    >
+                                        Watch Recipe Video
+                                    </a>
+                                )}
+
+                                <p className="whitespace-pre-line text-gray-700">{selectedRecipe.content}</p>
+
+                                {/* Zomato Link at the bottom before buttons */}
+                                {selectedRecipe.orderLink && (
+                                    <div className=" p-2 gap-2 justify-between flex">
+                                        <a
+                                            href={selectedRecipe.orderLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-red-500 underline mt-4 inline-block"
+                                        >
+                                            Buy Now
+                                        </a>
+                    
+                                        <a
+                                            href="https://blinkit.com"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-red-500 underline mt-4 inline-block"
+                                        >
+                                            Buy missing ingredients
+                                        </a>
+                                    </div>
+                                    )}
+                </>
                         ) : (
                             <p className="text-gray-400">No recipe generated yet.</p>
                         )}
 
-                        {/* Nutrition Card Above Buttons */}
+                        {/* Nutrition Card */}
                         {showNutrition && nutritionData && (
                             <div className="mt-4 w-full">
                                 <NutritionCard data={nutritionData} />
@@ -354,34 +402,36 @@ function HomePage() {
                         )}
 
                         {/* Buttons */}
-                        <div className="flex justify-between gap-2 mt-6">
-                            <button
-                                onClick={async () => {
-                                    if (!showNutrition) {
-                                        await fetchNutrition(selectedRecipe.ingredientsList);
-                                    }
-                                    setShowNutrition(!showNutrition); // toggle nutrition card
-                                }}
-                                className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
-                            >
-                                {showNutrition ? "Hide Nutrition" : "Show Nutrition"}
-                            </button>
+                        {!loading && (
+                            <div className="flex justify-between gap-2 mt-6">
+                                <button
+                                    onClick={async () => {
+                                        if (!showNutrition) {
+                                            await fetchNutrition(selectedRecipe.ingredientsList);
+                                        }
+                                        setShowNutrition(!showNutrition);
+                                    }}
+                                    className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
+                                >
+                                    {showNutrition ? "Hide Nutrition" : "Show Nutrition"}
+                                </button>
 
-                            <button
-                                onClick={() => {
-                                    setSelectedRecipe(null);
-                                    setShowNutrition(false);
-                                    setNutritionData(null);
-                                }}
-                                className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
-                            >
-                                Back
-                            </button>
-                        </div>
+                                <button
+                                    onClick={() => {
+                                        setSelectedRecipe(null);
+                                        setShowNutrition(false);
+                                        setNutritionData(null);
+                                    }}
+                                    className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
+                                >
+                                    Back
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
-
             )}
+
 
 
 
@@ -429,6 +479,20 @@ function HomePage() {
                     </div>
                 </div>
             )}
+
+
+
+
+            {/* ✅ Chatbot Window (modal style) */}
+            {isChatOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="relative w-full max-w-lg">
+                        <Chatbot onClose={() => setIsChatOpen(false)} />
+                    </div>
+                </div>
+            )}
+
+
         </div>
     );
 }

@@ -160,8 +160,10 @@ body {
 .header {
   padding: 20px 40px;
   display: flex;
-  justify-content: space-between; /* pushes title left, nav right */
-  align-items: center;           /* vertically center */
+  justify-content: space-between;
+  /* pushes title left, nav right */
+  align-items: center;
+  /* vertically center */
 }
 
 /* Title */
@@ -181,7 +183,8 @@ body {
 .nav-btn {
   background-color: #e63946;
   color: white;
-  padding: 8px 16px; /* smaller neat buttons */
+  padding: 8px 16px;
+  /* smaller neat buttons */
   border-radius: 8px;
   text-decoration: none;
   font-weight: bold;
@@ -237,8 +240,15 @@ body {
 }
 
 @keyframes scroll-left {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); } /* adjust according to number of images */
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+
+  /* adjust according to number of images */
 }
 
 /* Right to left scroll */
@@ -247,8 +257,14 @@ body {
 }
 
 @keyframes scroll-right {
-  0% { transform: translateX(-50%); } /* start from left shifted */
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(-50%);
+  }
+
+  /* start from left shifted */
+  100% {
+    transform: translateX(0);
+  }
 }
 
 
@@ -260,7 +276,8 @@ body {
 }
 
 .footer-content {
-  display: flex;              /* make columns side by side */
+  display: flex;
+  /* make columns side by side */
   justify-content: space-between;
   border-bottom: 0.5px solid #555;
   padding-bottom: 10px;
@@ -268,9 +285,11 @@ body {
 }
 
 .footer-column {
-  flex: 1;                    /* each column takes equal space */
+  flex: 1;
+  /* each column takes equal space */
   padding: 0 10px;
-  border-right: 1px solid #555; /* vertical dividing line */
+  border-right: 1px solid #555;
+  /* vertical dividing line */
 }
 
 .footer-column:last-child {
@@ -279,7 +298,8 @@ body {
 
 
 
-.footer-column p, .footer-column a {
+.footer-column p,
+.footer-column a {
   margin: 5px 0;
   color: #fff;
   text-decoration: none;
@@ -301,4 +321,4 @@ body {
   color: #ffcc00;
 }
 
-
+/* chatai */

@@ -40,6 +40,7 @@ router.post("/save", isAuthenticated, async (req, res) => {
 
 // Get all saved recipes for logged-in user
 router.get("/saved", isAuthenticated, async (req, res) => {
+    
     try {
         const userId = req.id;
         const user = await User.findById(userId);
