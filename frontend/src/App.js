@@ -10,6 +10,9 @@ import OurServices from './component/OurServices.jsx';
 import WhyChooseUs from './component/WhyChooseUs.jsx';
 import NutritionCard from './component/NutritionCard.jsx';
 import Chatbot from './component/Chatbot.jsx';
+import RecipeCard from './component/RecipeCard.jsx';
+import SharedRecipePage from './component/SharedRecipePage.jsx';
+
 
 
 const router = createBrowserRouter([
@@ -23,6 +26,8 @@ const router = createBrowserRouter([
   {path: "/whyChooseUs", element:<WhyChooseUs/>},
   {path: "/nutritionCard", element:<NutritionCard />},
   {path: "/chatbot", element:<Chatbot/>},
+  {path: "/recipe/:id", element: <RecipeCard />},
+  {path: "/sharedRecipe/:recipeId", element: <SharedRecipePage />},
 
 ]);
 

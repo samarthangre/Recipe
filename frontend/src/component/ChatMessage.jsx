@@ -5,7 +5,7 @@ const ChatMessage = ({ chat }) => {
 
   const baseClasses =
     "inline-block p-3 my-2 break-words rounded-2xl";
-  const botClasses = "bg-gray-200 text-black self-start rounded-tl-none";
+  const botClasses = "  bg-yellow-300 text-black self-start rounded-tl-none";
   const userClasses = "bg-yellow-300 text-black self-end rounded-tr-none";
   const errorClasses = "bg-red-500 text-white";
 

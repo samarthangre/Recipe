@@ -1,7 +1,4 @@
 import React from "react";
-import Navbar from "./Navbar";
-import { FaArrowLeft } from "react-icons/fa";
-
 
 function OurServices() {
     const services = [
@@ -39,14 +36,14 @@ function OurServices() {
 
             <div className="min-h-screen bg-gray-900 px-6 py-10 flex flex-col items-center text-white">
                 {/* Back Button */}
-                <Navbar />
+                <nav className="w-full flex items-center p-4  ">
+                    {/* Logo on left */}
+                    <div className="flex items-center">
+                        <img src="/logo.png" alt="Logo" className="h-12 w-auto" />
+                        <div className="text-2xl font-bold"><a href="/"> DumbChefs </a></div>
+                    </div>
+                </nav>
                 <div className="relative mb-10 w-full">
-                    <a
-                        href="/"
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-3xl hover:text-yellow-300"
-                    >
-                        <FaArrowLeft />
-                    </a>
                     <h1 className="text-4xl font-extrabold text-white text-center">
                         Our <span className="text-yellow-400">Services</span>
                     </h1>

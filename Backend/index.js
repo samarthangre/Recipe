@@ -60,7 +60,7 @@ app.get("/recipesearch", async (req, res) => {
                     diet: diet?.trim() || undefined,
                     type: type?.trim() || undefined,
                     maxReadyTime: maxReadyTime?.trim() || undefined,
-                    number: 1, // Limit to 4 recipes
+                    number: 5, // Limit to 4 recipes
                     addRecipeInformation: true,
                 },
             }
@@ -108,12 +108,11 @@ app.get("/recipestream", async (req, res) => {
         "Generate a recipe that incorporates the following details:",
         `[Ingredients: ${ingredients}]`,
         `[Meal type: ${mealType || "any"}]`,
-        `[Cuisine preference: ${cuisine || "any"}]`,
-        `[Cooking time: ${cookingTime || "any"}]`,
+        `[Cuisine preference: ${cuisine || "Indian"}]`,
+        `[Cooking time: ${cookingTime || "least possible"}]`,
         `[Complexity: ${complexity || "easy"}]`,
-        "Please provide a detailed recipe, including steps for preparation and cooking. Only use the ingredients mentioned.",
-        "The recipe should highlight the fresh and vibrant flavours of the ingredients.",
-        "Also give the recipe a suitable name in its local language based on cuisine preference.",
+        "Provide:- Recipe Name- Short Description- Ingredients (only from provided list)- Cooking Time- Servings- Preparation Steps- Cooking Steps,at least 200 words",
+        "- Provide nutritional information (Calories, Protein, Carbs, Fat, Fiber, etc.)- If no authentic recipe is possible, say: No authentic recipe found with the given inputs.`);",
     ];
 
     const messages = [

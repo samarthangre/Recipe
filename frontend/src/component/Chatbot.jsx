@@ -67,16 +67,16 @@ const Chatbot = ({ onClose }) => {
 
 
     return (
-        <div className="fixed bottom-5 right-5 z-50 w-96 h-[500px] bg-white rounded-2xl shadow-lg flex flex-col">
+        <div className="fixed bottom-5 right-5 z-50 w-96 h-[500px] bg-yellow-100 rounded-2xl shadow-lg flex flex-col">
             {/* Header */}
             <div className="flex items-center gap-2 p-3 border-b relative">
                 <ChatbotIcon />
-                <h2 className="font-semibold">Chatbox</h2>
+                <h2 className="font-semibold text-black">Chatbox</h2>
 
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-5 right-3 w-9 h-9 rounded-lg bg-gray-200 text-black flex items-center justify-center hover:bg-gray-300"
+                    className="absolute top-5 right-3 w-9 h-9 rounded-lg bg-yellow-300 text-black flex items-center justify-center hover:bg-gray-300"
                 >
                     ✖
                 </button>

@@ -1,38 +1,37 @@
 import React from "react";
-import Navbar from "./Navbar";
-import { FaArrowLeft } from "react-icons/fa";
+
 
 function WhyChooseUs() {
   const reasons = [
     {
       title: "AI-Powered Recipe Generator",
       desc: "Get personalized recipes instantly based on your ingredients.",
-      img: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80",
+      img: "/images/OurServicePage/ai.jpg",
     },
     {
       title: "Health-Friendly",
       desc: "Built-in calorie counter and nutrition insights for mindful eating.",
-      img: "https://images.unsplash.com/photo-1607344645866-009c3c60a5f6?auto=format&fit=crop&w=800&q=80",
+      img:"/images/OurServicePage/healthfrnd.jpg",
     },
     {
       title: "Time-Saver",
       desc: "No more endless browsing; find the right recipe in seconds.",
-      img: "https://images.unsplash.com/photo-1604908176997-4d36a4e0c6d2?auto=format&fit=crop&w=800&q=80",
+      img: "/images/OurServicePage/timesaver.jpg",
     },
     {
       title: "User Ratings & Reviews",
       desc: "Trust the community feedback before trying a new recipe.",
-      img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80",
+      img: "/images/OurServicePage/rating.jpg",
     },
     {
       title: "Creative Cooking",
       desc: "Explore new dishes and cuisines beyond the basics.",
-      img: "https://images.unsplash.com/photo-1617196038435-c1e4a79e5f2b?auto=format&fit=crop&w=800&q=80",
+      img: "/images/OurServicePage/simplefun.jpg",
     },
     {
       title: "Simple & Fun",
       desc: "Designed for everyone, from beginners to expert chefs.",
-      img: "https://images.unsplash.com/photo-1589712188858-0d58c8eec6b0?auto=format&fit=crop&w=800&q=80",
+      img: "/images/OurServicePage/creative.jpg",
     },
   ];
 
@@ -47,17 +46,16 @@ function WhyChooseUs() {
     <>
       <div className="min-h-screen bg-gray-900 px-6 py-10 flex flex-col items-center text-white">
         {/* Navbar */}
-        <Navbar />
-
-
+        <nav className="w-full flex items-center p-4  ">
+                    {/* Logo on left */}
+                    <div className="flex items-center">
+                        <img src="/logo.png" alt="Logo" className="h-12 w-auto" />
+                        <div className="text-2xl font-bold"><a href="/"> DumbChefs </a></div>
+                    </div>
+                </nav>
         {/* Heading */}
         <div className="relative mb-10 w-full">
-          <a
-            href="/"
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-3xl hover:text-yellow-300"
-          >
-            <FaArrowLeft />
-          </a>
+          
           <h1 className="text-4xl font-extrabold text-white text-center">
             Why <span className="text-yellow-400">Choose Us?</span>
           </h1>

@@ -61,8 +61,8 @@ const SignUp = () => {
             );
 
             if (res.status === 201) {
-                setSuccessMsg("✅ SignUp successful! You can now log in.");
-                setTimeout(() => navigate("/login"), 2000);
+                setSuccessMsg("✅ SignUp successful!");
+                setTimeout(() => navigate("/homePage"), 2000);
             }
         } catch (error) {
             console.error("Error during sign up:", error);
@@ -81,8 +81,16 @@ const SignUp = () => {
         <>
             <div
                 className="h-screen w-screen bg-cover bg-center flex items-center justify-center"
-                style={{ backgroundImage: "url('/LoginBg.jpg')" }}
             >
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                >
+                    <source src="/LoginBg.mp4" type="video/mp4" />
+                </video>
                 <div className="bg-white/20 backdrop-blur-md p-8 rounded-2xl shadow-lg w-96">
                     <h1 className="text-2xl text-center font-bold mb-6 text-yellow-500">
                         Made for you!
@@ -160,7 +168,7 @@ const SignUp = () => {
 
                         <p className="mt-4 text-center text-white">
                             Already have an account?{" "}
-                            <Link to="/Login" className="underline hover:text-yellow-300">
+                            <Link to="/Login" className="underline hover:text-yellow-300  text-slate-400 font-semibold">
                                 Login
                             </Link>
                         </p>

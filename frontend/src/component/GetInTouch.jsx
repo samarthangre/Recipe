@@ -1,15 +1,19 @@
 import React from "react";
-import Navbar from "./Navbar";
+
 
 function GetInTouch() {
     return (
         <div className="min-h-screen bg-black text-white flex flex-col">
             {/* Navbar */}
             <div className="flex items-center justify-between px-5 py-3">
-                <Navbar />
-                <h4 className="text-yellow-400 font-bold hover:text-yellow-300 text-2xl self-end">
-                    <a href="/">← Back</a>
-                </h4>
+                <nav className="w-full flex items-center p-4  ">
+                    {/* Logo on left */}
+                    <div className="flex items-center">
+                        <img src="/logo.png" alt="Logo" className="h-12 w-auto" />
+                        <div className="text-2xl font-bold"><a href="/"> DumbChefs </a></div>
+                    </div>
+                </nav>
+                
             </div>
 
             {/* Content Section */}

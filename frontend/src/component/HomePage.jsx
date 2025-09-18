@@ -10,6 +10,7 @@ function HomePage() {
     const [ingredients, setIngredients] = useState("");
     const [recipes, setRecipes] = useState([]);
     const [selectedRecipe, setSelectedRecipe] = useState(null);
+    const [savedRecipes, setSavedRecipes] = useState(new Set());
     const [loading, setLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState(null);
     const [nutritionData, setNutritionData] = useState(null);
@@ -51,6 +52,24 @@ function HomePage() {
         }
     };
 
+    // ===Share Recipes ==
+    const handleShare = (recipe) => {
+        const shareUrl = `${window.location.origin}/recipes/share/${recipe.id}`;
+        const shareText = `Check out this recipe: ${recipe.name}`;
+
+
+        if (navigator.share) {
+            navigator.share({
+                title: recipe.name,
+                text: shareText,
+                url: shareUrl,
+            }).catch((err) => console.error("Share failed:", err));
+        } else {
+            navigator.clipboard.writeText(shareUrl)
+                .then(() => alert("🔗 Share link copied to clipboard!"))
+                .catch((err) => console.error("Clipboard error:", err));
+        }
+    };
 
     // ===== Fetch recipes list =====
     const handleGenerate = async () => {
@@ -101,14 +120,17 @@ function HomePage() {
     };
 
     // ===== Save recipe =====
-    const saveRecipe = async (recipe) => {
-        const token = localStorage.getItem("token"); // or your auth token
-        const response = await fetch("http://localhost:5000/api/recipes/save", {
+    const toggleSaveRecipe = async (recipe) => {
+        const isAlreadySaved = savedRecipes.has(recipe.id);
+
+        const url = isAlreadySaved
+            ? "http://localhost:5000/api/recipes/unsave"  // Assume this exists
+            : "http://localhost:5000/api/recipes/save";
+
+        const response = await fetch(url, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 recipeId: recipe.id,
                 name: recipe.name,
@@ -117,8 +139,17 @@ function HomePage() {
         });
 
         const data = await response.json();
+
         if (response.ok) {
-            alert("Recipe saved!");
+            setSavedRecipes((prev) => {
+                const updated = new Set(prev);
+                if (isAlreadySaved) {
+                    updated.delete(recipe.id);
+                } else {
+                    updated.add(recipe.id);
+                }
+                return updated;
+            });
         } else {
             alert(data.message);
         }
@@ -136,7 +167,7 @@ function HomePage() {
             const params = new URLSearchParams({
                 ingredients: recipe.ingredientsList.join("\n"),
                 mealType: selectedFilterOption.Mealtype || "dinner",
-                cuisine: selectedFilterOption.Cuisine || "any",
+                cuisine: selectedFilterOption.Cuisine || "Indian",
                 diet: selectedFilterOption.Diet || "balanced",
                 cookingTime: selectedFilterOption.Recipetime || "30 minutes",
                 complexity: "easy",
@@ -259,13 +290,18 @@ function HomePage() {
                                     {/* Save button at top-right */}
                                     <button
                                         onClick={(e) => {
-                                            e.preventDefault();
-                                            saveRecipe(recipe);
+                                            e.stopPropagation(); // prevent triggering recipe open
+                                            toggleSaveRecipe(recipe);
                                         }}
                                         className="absolute top-2 right-2 flex items-center justify-center text-white bg-black bg-opacity-50 p-2 rounded-full hover:bg-opacity-80 transition"
                                     >
-                                        <FaBookmark />
+                                        {savedRecipes.has(recipe.id) ? (
+                                            <FaBookmark className="text-yellow-400" /> // Filled/starred for saved
+                                        ) : (
+                                            <FaBookmark className="text-white" /> // White/empty for unsaved
+                                        )}
                                     </button>
+
                                     {/* Recipe image */}
                                     <img
                                         alt={recipe.name}
@@ -289,12 +325,21 @@ function HomePage() {
 
 
                                         {/* Share */}
-                                        <button className="flex items-center gap-1 hover:text-white transition  bg-black p-2 rounded-lg">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // ✅ stop card click
+                                                handleShare(recipe);
+                                            }}
+                                            className="flex items-center gap-1 hover:text-white transition  bg-black p-2 rounded-lg">
                                             <FaShareAlt />
                                         </button>
 
                                         {/* Rate */}
-                                        <button className="flex items-center gap-1 hover:text-white transition  bg-black p-2 rounded-lg">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // ✅ stop card click
+                                            }}
+                                            className="flex items-center gap-1 hover:text-white transition  bg-black p-2 rounded-lg">
                                             <FaStar />
                                         </button>
                                     </div>
@@ -311,7 +356,7 @@ function HomePage() {
                                 {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                                     <img
                                         key={i}
-                                        src={`/images/recipe${i}.jpg`}
+                                        src={`/images/HomePage/recipe${i}.jpg`}
                                         alt={`Recipe ${i}`}
                                         className="h-56 w-56 md:h-64 md:w-64 object-cover rounded-xl shadow-lg inline-block mr-6"
                                     />
@@ -326,7 +371,7 @@ function HomePage() {
                                 {[9, 10, 11, 12, 13, 14, 15, 16].map((i) => (
                                     <img
                                         key={`right-${i}`}
-                                        src={`/images/recipe${i}.jpg`}
+                                        src={`/images/HomePage/recipe${i}.jpg`}
                                         alt={`Recipe ${i}`}
                                         className="h-56 w-56 md:h-64 md:w-64 object-cover rounded-xl shadow-lg inline-block mr-6"
                                     />
@@ -361,7 +406,7 @@ function HomePage() {
                                         rel="noopener noreferrer"
                                         className="text-red-500 underline mt-4 inline-block"
                                     >
-                                        Watch Recipe Video
+                                        Watch Recipe Video For More Ideas
                                     </a>
                                 )}
 
@@ -378,7 +423,7 @@ function HomePage() {
                                         >
                                             Buy Now
                                         </a>
-                    
+
                                         <a
                                             href="https://blinkit.com"
                                             target="_blank"
@@ -388,8 +433,8 @@ function HomePage() {
                                             Buy missing ingredients
                                         </a>
                                     </div>
-                                    )}
-                </>
+                                )}
+                            </>
                         ) : (
                             <p className="text-gray-400">No recipe generated yet.</p>
                         )}

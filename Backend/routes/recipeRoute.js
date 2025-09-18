@@ -38,9 +38,31 @@ router.post("/save", isAuthenticated, async (req, res) => {
     }
 });
 
+// Unsave a recipe for a logged-in user
+router.post("/unsave", isAuthenticated, async (req, res) => {
+    const { recipeId } = req.body;
+    const userId = req.id; // req.id is set by isAuthenticated middleware
+
+    if (!recipeId) {
+        return res.status(400).json({ message: "Recipe ID is required." });
+    }
+
+    try {
+        await User.findByIdAndUpdate(userId, {
+            $pull: { savedRecipes: { recipeId: recipeId } }
+        });
+
+        return res.status(200).json({ message: "Recipe unsaved successfully." });
+    } catch (error) {
+        console.error("Unsave recipe error:", error);
+        return res.status(500).json({ message: "Internal server error." });
+    }
+});
+
+
+
 // Get all saved recipes for logged-in user
 router.get("/saved", isAuthenticated, async (req, res) => {
-    
     try {
         const userId = req.id;
         const user = await User.findById(userId);
@@ -51,6 +73,26 @@ router.get("/saved", isAuthenticated, async (req, res) => {
     } catch (error) {
         console.error("Error fetching saved recipes:", error);
         res.status(500).json({ message: "Server error while fetching recipes." });
+    }
+});
+
+router.get("/share/:recipeId", async (req, res) => {
+    try {
+        const { recipeId } = req.params;
+
+        // Find a user who has saved this recipe
+        const user = await User.findOne({ "savedRecipes.recipeId": recipeId });
+        if (!user) {
+            return res.status(404).json({ message: "Recipe not found." });
+        }
+
+        // Extract the recipe details
+        const recipe = user.savedRecipes.find(r => r.recipeId === recipeId);
+
+        res.status(200).json({ recipe });
+    } catch (error) {
+        console.error("Error sharing recipe:", error);
+        res.status(500).json({ message: "Server error while sharing recipe." });
     }
 });
 
