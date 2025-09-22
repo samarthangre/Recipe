@@ -1,6 +1,7 @@
 import express from "express";
 import { User } from "../models/userModel.js";
 import isAuthenticated from "../middleware/isAuthenticated.js";
+import Rating from "../models/ratingModel.js"; // ✅ import the model
 
 const router = express.Router();
 
@@ -76,6 +77,7 @@ router.get("/saved", isAuthenticated, async (req, res) => {
     }
 });
 
+
 router.get("/share/:recipeId", async (req, res) => {
     try {
         const { recipeId } = req.params;
@@ -95,5 +97,37 @@ router.get("/share/:recipeId", async (req, res) => {
         res.status(500).json({ message: "Server error while sharing recipe." });
     }
 });
+
+
+
+
+
+
+// Rate a recipe
+router.post("/rate", isAuthenticated, async (req, res) => {
+    const { recipeId, rating } = req.body;
+    const userId = req.id; // comes from your isAuthenticated middleware
+
+    if (!userId || !recipeId || rating == null) {
+        return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    try {
+        // Upsert: update if exists, insert if not
+        await Rating.findOneAndUpdate(
+            { userId, recipeId },
+            { rating },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
+        return res.status(200).json({ message: "Rating saved!" });
+    } catch (err) {
+        console.error("Rating error:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
+
+
 
 export default router;

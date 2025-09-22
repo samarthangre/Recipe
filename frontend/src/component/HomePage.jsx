@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { FaUserCircle, FaRobot } from "react-icons/fa";
-import { FaBookmark, FaShareAlt, FaStar } from "react-icons/fa";
+import { FaBookmark, FaShareAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import NutritionCard from "./NutritionCard.jsx";
 import Chatbot from "./Chatbot.jsx";
+import StarRating from "./StarRating.jsx";
 
 function HomePage() {
     const [ingredients, setIngredients] = useState("");
@@ -23,6 +24,10 @@ function HomePage() {
     });
     const [showNutrition, setShowNutrition] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [showOnlyRecipes, setShowOnlyRecipes] = useState(false);
+    const [recipeRatings, setRecipeRatings] = useState({});
+
+
 
     const filterOptions = {
         Cuisine: ["Indian", "Italian", "Chinese", "Mexican"],
@@ -32,7 +37,11 @@ function HomePage() {
         Rating: ["⭐ 1+", "⭐ 2+", "⭐ 3+", "⭐ 4+", "⭐ 5"],
     };
 
-
+    const Spinner = () => (
+        <div className="flex justify-center items-center h-40">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-orange-500"></div>
+        </div>
+    );
 
     const fetchNutrition = async (ingredients) => {
         try {
@@ -115,8 +124,17 @@ function HomePage() {
             console.error("Error fetching recipes:", err);
             setRecipes([]);
         } finally {
+            setShowOnlyRecipes(true);
             setLoading(false);
         }
+    };
+    // ==default filter values for cancel action
+    const defaultFilterValues = {
+        Cuisine: "",
+        Mealtype: "",
+        Recipetime: "",
+        Diet: "",
+        Rating: "",
     };
 
     // ===== Save recipe =====
@@ -135,6 +153,7 @@ function HomePage() {
                 recipeId: recipe.id,
                 name: recipe.name,
                 image: recipe.image,
+
             }),
         });
 
@@ -154,6 +173,31 @@ function HomePage() {
             alert(data.message);
         }
     };
+
+
+    // ===== Handle star click for rating =====
+    const handleRateRecipe = async (recipeId, rating) => {
+        try {
+            const res = await fetch("http://localhost:5000/api/recipes/rate", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ recipeId, rating }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setRecipeRatings((prev) => ({ ...prev, [recipeId]: rating }));
+            } else {
+                alert(data.message || "Failed to save rating.");
+            }
+        } catch (err) {
+            console.error("Rating error:", err);
+            alert("Something went wrong while rating.");
+        }
+    };
+
 
     // ===== Fetch full recipe =====
     const fetchFullRecipe = async (recipe) => {
@@ -220,135 +264,144 @@ function HomePage() {
         }
     };
 
+
+
+
     return (
         <div className="min-h-screen bg-black text-white p-6 relative">
+            <div >
 
-            <div className={activeFilter ? "filter blur-sm" : ""}>
-                {/* Navbar & Search */}
-                <div className="flex items-center p-3 rounded-3xl max-w-8xl mx-auto pt-5">
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                        <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
-                    </div>
+                <div className={activeFilter ? "filter blur-sm" : ""}>
+                    {/* Navbar & Search */}
+                    <div className="flex items-center p-3 rounded-3xl max-w-8xl mx-auto pt-5">
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
+                        </div>
 
-                    <div className="flex items-center flex-grow mx-6 bg-slate-200 rounded-3xl rounded-tl-none rounded-br-none px-4 py-2">
-                        <FiSearch className="text-gray-500 text-xl" />
-                        <input
-                            type="text"
-                            placeholder="Search ingredients..."
-                            value={ingredients}
-                            onChange={(e) => setIngredients(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") handleGenerate();
-                            }}
-                            className="bg-transparent outline-none px-3 text-black w-full"
-                        />
-                        <button
-                            onClick={handleGenerate}
-                            className="ml-2 bg-orange-500 text-white px-4 py-2 rounded-xl hover:bg-orange-600 transition"
-                        >
-                            Generate
-                        </button>
-                    </div>
-
-                    <div className="flex gap-4 text-4xl text-white flex-shrink-0">
-                        <Link to="/profilePage">
-                            <FaUserCircle className="cursor-pointer hover:text-orange-500" />
-                        </Link>
-                        {/* ✅ Use FaRobot to toggle chatbot */}
-                        <FaRobot
-                            className="cursor-pointer hover:text-orange-500"
-                            onClick={() => setIsChatOpen(true)}
-                        />
-                    </div>
-                </div>
-
-                {/* Filters */}
-                <div className="flex justify-center gap-6 mt-8 flex-wrap">
-                    {Object.keys(filterOptions).map((btn, idx) => (
-                        <button
-                            key={idx}
-                            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-xl text-lg transition-transform transform hover:scale-105"
-                            onClick={() => setActiveFilter(btn)}
-                        >
-                            {btn} {selectedFilterOption[btn] && `: ${selectedFilterOption[btn]}`}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Recipes Grid */}
-                {recipes.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10 max-w-6xl mx-auto">
-                        {recipes.map((recipe) => (
-                            <div
-                                key={recipe.id}
-                                onClick={() => fetchFullRecipe(recipe)}
-                                className="cursor-pointer rounded-lg overflow-hidden shadow-lg hover:scale-105 transform transition duration-300 flex flex-col"
-                                style={{ height: "300px" }} // you can adjust this if needed
+                        <div className="flex items-center flex-grow mx-6 bg-slate-200 rounded-3xl rounded-tl-none rounded-br-none px-4 py-2">
+                            <FiSearch className="text-gray-500 text-xl" />
+                            <input
+                                type="text"
+                                placeholder="Search ingredients..."
+                                value={ingredients}
+                                onChange={(e) => setIngredients(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleGenerate();
+                                }}
+                                className="bg-transparent outline-none px-3 text-black w-full"
+                            />
+                            <button
+                                onClick={handleGenerate}
+                                className="ml-2 bg-orange-500 text-white px-4 py-2 rounded-xl hover:bg-orange-600 transition"
                             >
-                                {/* Image */}
-                                <div className="w-full h-40 overflow-hidden flex-shrink-0 relative">
-                                    {/* Save button at top-right */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation(); // prevent triggering recipe open
-                                            toggleSaveRecipe(recipe);
-                                        }}
-                                        className="absolute top-2 right-2 flex items-center justify-center text-white bg-black bg-opacity-50 p-2 rounded-full hover:bg-opacity-80 transition"
-                                    >
-                                        {savedRecipes.has(recipe.id) ? (
-                                            <FaBookmark className="text-yellow-400" /> // Filled/starred for saved
-                                        ) : (
-                                            <FaBookmark className="text-white" /> // White/empty for unsaved
-                                        )}
-                                    </button>
+                                Generate
+                            </button>
+                        </div>
 
-                                    {/* Recipe image */}
-                                    <img
-                                        alt={recipe.name}
-                                        src={recipe.image}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
+                        <div className="flex gap-4 text-4xl text-white flex-shrink-0">
+                            <Link to="/profilePage">
+                                <FaUserCircle className="cursor-pointer hover:text-orange-500" />
+                            </Link>
+                            {/* ✅ Use FaRobot to toggle chatbot */}
+                            <FaRobot
+                                className="cursor-pointer hover:text-orange-500"
+                                onClick={() => setIsChatOpen(true)}
+                            />
+                        </div>
+                    </div>
 
-
-                                {/* Content */}
-                                <div className="flex flex-col bg-gray-800 p-4 flex-grow gap-0">
-                                    {/* Recipe Name */}
-                                    <div className="text-center">
-                                        <h2 className="text-lg font-bold text-white truncate">
-                                            {recipe.name}
-                                        </h2>
-                                    </div>
-
-                                    {/* Actions at the bottom */}
-                                    <div className="flex justify-between mt-auto text-xl text-yellow-500">
-
-
-                                        {/* Share */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // ✅ stop card click
-                                                handleShare(recipe);
-                                            }}
-                                            className="flex items-center gap-1 hover:text-white transition  bg-black p-2 rounded-lg">
-                                            <FaShareAlt />
-                                        </button>
-
-                                        {/* Rate */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // ✅ stop card click
-                                            }}
-                                            className="flex items-center gap-1 hover:text-white transition  bg-black p-2 rounded-lg">
-                                            <FaStar />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                    {/* Filters */}
+                    <div className="flex justify-center gap-6 mt-8 flex-wrap">
+                        {Object.keys(filterOptions).map((btn, idx) => (
+                            <button
+                                key={idx}
+                                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-xl text-lg transition-transform transform hover:scale-105"
+                                onClick={() => setActiveFilter(btn)}
+                            >
+                                {btn} {selectedFilterOption[btn] && `: ${selectedFilterOption[btn]}`}
+                            </button>
                         ))}
                     </div>
 
-                ) : (
+                    {/* Recipes Grid */}
+                    {loading && <Spinner />}
+
+                    {recipes.length > 0 && showOnlyRecipes && (
+                        <div className="fixed inset-0 z-50 flex flex-col items-center justify-start bg-black bg-opacity-80 overflow-auto p-6">
+                            <button
+                                onClick={() => {
+                                    setShowOnlyRecipes(false);
+                                    setRecipes([]);
+                                }}
+                                className="mb-6 bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl transition"
+                            >
+                                ← Home Page
+                            </button>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                                {recipes.map((recipe) => (
+                                    <div
+                                        key={recipe.id}
+                                        onClick={() => fetchFullRecipe(recipe)}
+                                        className="cursor-pointer rounded-lg overflow-hidden shadow-lg hover:scale-105 transform transition duration-300 flex flex-col"
+                                        style={{ height: "300px" }}
+                                    >
+                                        <div className="w-full h-40 overflow-hidden flex-shrink-0 relative">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleSaveRecipe(recipe);
+                                                }}
+                                                className="absolute top-2 right-2 flex items-center justify-center text-white bg-black bg-opacity-50 p-2 rounded-full hover:bg-opacity-80 transition"
+                                            >
+                                                {savedRecipes.has(recipe.id) ? (
+                                                    <FaBookmark className="text-yellow-400" />
+                                                ) : (
+                                                    <FaBookmark className="text-white" />
+                                                )}
+                                            </button>
+                                            <img
+                                                alt={recipe.name}
+                                                src={recipe.image}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col bg-gray-800 p-4 flex-grow gap-0">
+                                            <div className="text-center">
+                                                <h2 className="text-lg font-bold text-white truncate">
+                                                    {recipe.name}
+                                                </h2>
+                                            </div>
+                                            <div className="flex justify-between mt-auto text-xl text-yellow-500">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleShare(recipe);
+                                                    }}
+                                                    className="flex items-center gap-1 hover:text-white transition bg-black p-2 rounded-lg"
+                                                >
+                                                    <FaShareAlt />
+                                                </button>
+
+
+                                                <StarRating
+                                                    recipeId={recipe.id}
+                                                    initialRating={recipeRatings[recipe.id] || 0}
+                                                    onRate={handleRateRecipe}
+                                                />
+
+
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+
                     <div className="mt-10 space-y-10">
                         {/* Placeholder scrolling images */}
                         <div className="overflow-hidden relative max-w-6xl mx-auto h-60 md:h-64 my-6">
@@ -383,161 +436,168 @@ function HomePage() {
                             the easy way with Flavoriz.
                         </div>
                     </div>
-                )}
-            </div>
+
+                </div>
 
 
-            {/* Full Recipe Modal */}
-            {selectedRecipe && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
-                    <div className="bg-white text-black rounded-2xl shadow-lg max-w-2xl w-full p-6 pr-8 overflow-y-auto max-h-[80vh]">
+                {/* Full Recipe Modal */}
+                {selectedRecipe && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
+                        <div className="bg-white text-black rounded-2xl shadow-lg max-w-2xl w-full p-6 pr-8 overflow-y-auto max-h-[80vh]">
 
-                        <h2 className="text-2xl font-bold mb-4">{selectedRecipe.name}</h2>
+                            <h2 className="text-2xl font-bold mb-4">{selectedRecipe.name}</h2>
 
-                        {loading ? (
-                            <p className="text-gray-500">⏳ Generating recipe...</p>
-                        ) : selectedRecipe.content ? (
-                            <>
-                                {/* YouTube Link below recipe content */}
-                                {selectedRecipe.videoLink && (
-                                    <a
-                                        href={selectedRecipe.videoLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-red-500 underline mt-4 inline-block"
+                            {loading ? (
+                                <p className="text-gray-500">⏳ Generating recipe...</p>
+                            ) : selectedRecipe.content ? (
+                                <>
+                                    {/* YouTube Link below recipe content */}
+                                    {selectedRecipe.videoLink && (
+                                        <a
+                                            href={selectedRecipe.videoLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-red-500 underline mt-4 inline-block"
+                                        >
+                                            Watch Recipe Video For More Ideas
+                                        </a>
+                                    )}
+
+                                    <p className="whitespace-pre-line text-gray-700">{selectedRecipe.content}</p>
+
+                                    {/* Zomato Link at the bottom before buttons */}
+                                    {selectedRecipe.orderLink && (
+                                        <div className=" p-2 gap-2 justify-between flex">
+                                            <a
+                                                href={selectedRecipe.orderLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-red-500 underline mt-4 inline-block"
+                                            >
+                                                Buy Now
+                                            </a>
+
+                                            <a
+                                                href="https://blinkit.com"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-red-500 underline mt-4 inline-block"
+                                            >
+                                                Buy missing ingredients
+                                            </a>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <p className="text-gray-400">No recipe generated yet.</p>
+                            )}
+
+                            {/* Nutrition Card */}
+                            {showNutrition && nutritionData && (
+                                <div className="mt-4 w-full">
+                                    <NutritionCard data={nutritionData} />
+                                </div>
+                            )}
+
+                            {/* Buttons */}
+                            {!loading && (
+                                <div className="flex justify-between gap-2 mt-6">
+                                    <button
+                                        onClick={async () => {
+                                            if (!showNutrition) {
+                                                await fetchNutrition(selectedRecipe.ingredientsList);
+                                            }
+                                            setShowNutrition(!showNutrition);
+                                        }}
+                                        className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
                                     >
-                                        Watch Recipe Video For More Ideas
-                                    </a>
-                                )}
+                                        {showNutrition ? "Hide Nutrition" : "Show Nutrition"}
+                                    </button>
 
-                                <p className="whitespace-pre-line text-gray-700">{selectedRecipe.content}</p>
-
-                                {/* Zomato Link at the bottom before buttons */}
-                                {selectedRecipe.orderLink && (
-                                    <div className=" p-2 gap-2 justify-between flex">
-                                        <a
-                                            href={selectedRecipe.orderLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-red-500 underline mt-4 inline-block"
-                                        >
-                                            Buy Now
-                                        </a>
-
-                                        <a
-                                            href="https://blinkit.com"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-red-500 underline mt-4 inline-block"
-                                        >
-                                            Buy missing ingredients
-                                        </a>
-                                    </div>
-                                )}
-                            </>
-                        ) : (
-                            <p className="text-gray-400">No recipe generated yet.</p>
-                        )}
-
-                        {/* Nutrition Card */}
-                        {showNutrition && nutritionData && (
-                            <div className="mt-4 w-full">
-                                <NutritionCard data={nutritionData} />
-                            </div>
-                        )}
-
-                        {/* Buttons */}
-                        {!loading && (
-                            <div className="flex justify-between gap-2 mt-6">
-                                <button
-                                    onClick={async () => {
-                                        if (!showNutrition) {
-                                            await fetchNutrition(selectedRecipe.ingredientsList);
-                                        }
-                                        setShowNutrition(!showNutrition);
-                                    }}
-                                    className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
-                                >
-                                    {showNutrition ? "Hide Nutrition" : "Show Nutrition"}
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        setSelectedRecipe(null);
-                                        setShowNutrition(false);
-                                        setNutritionData(null);
-                                    }}
-                                    className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
-                                >
-                                    Back
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-
-
-
-
-            {/* Cooking Tips Section */}
-            <div className="mt-16 max-w-3xl mx-auto bg-gray-800 rounded-2xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-yellow-400 mb-4 text-center">
-                    🍳 Cooking Tips
-                </h2>
-                <ul className="list-disc list-inside text-gray-300 space-y-2">
-                    <li>Always taste your food while cooking and adjust seasonings accordingly.</li>
-                    <li>Prep all ingredients before you start cooking for better results.</li>
-                    <li>Fresh herbs should be added at the end of cooking for maximum flavor.</li>
-                </ul>
-            </div>
-
-            {/* Filter Overlay */}
-            {activeFilter && (
-                <div className="fixed inset-0 z-50 flex justify-center items-start pt-40">
-                    <div className="bg-white text-black p-6 rounded-xl shadow-lg">
-                        <h3 className="text-xl font-bold mb-4">{activeFilter} Options</h3>
-                        <div className="flex flex-col gap-3">
-                            {filterOptions[activeFilter].map((option) => (
-                                <button
-                                    key={option}
-                                    onClick={() => {
-                                        setSelectedFilterOption((prev) => ({
-                                            ...prev,
-                                            [activeFilter]: option,
-                                        }));
-                                        setActiveFilter(null);
-                                    }}
-                                    className="py-2 px-4 rounded-lg hover:bg-orange-500 hover:text-white transition"
-                                >
-                                    {option}
-                                </button>
-                            ))}
+                                    <button
+                                        onClick={() => {
+                                            setSelectedRecipe(null);
+                                            setShowNutrition(false);
+                                            setNutritionData(null);
+                                        }}
+                                        className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
+                                    >
+                                        Back
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        <button
-                            onClick={() => setActiveFilter(null)}
-                            className="mt-4 text-red-500 hover:underline"
-                        >
-                            Cancel
-                        </button>
                     </div>
+                )}
+
+
+
+
+
+                {/* Cooking Tips Section */}
+                <div className="mt-16 max-w-3xl mx-auto bg-gray-800 rounded-2xl shadow-lg p-6">
+                    <h2 className="text-2xl font-bold text-yellow-400 mb-4 text-center">
+                        🍳 Cooking Tips
+                    </h2>
+                    <ul className="list-disc list-inside text-gray-300 space-y-2">
+                        <li>Always taste your food while cooking and adjust seasonings accordingly.</li>
+                        <li>Prep all ingredients before you start cooking for better results.</li>
+                        <li>Fresh herbs should be added at the end of cooking for maximum flavor.</li>
+                    </ul>
                 </div>
-            )}
 
+                {/* Filter Overlay */}
+                {activeFilter && (
+                    <div className="fixed inset-0 z-50 flex justify-center items-start pt-40">
+                        <div className="bg-white text-black p-6 rounded-xl shadow-lg">
+                            <h3 className="text-xl font-bold mb-4">{activeFilter} Options</h3>
+                            <div className="flex flex-col gap-3">
+                                {filterOptions[activeFilter].map((option) => (
+                                    <button
+                                        key={option}
+                                        onClick={() => {
+                                            setSelectedFilterOption((prev) => ({
+                                                ...prev,
+                                                [activeFilter]: option,
+                                            }));
+                                            setActiveFilter(null);
+                                        }}
+                                        className="py-2 px-4 rounded-lg hover:bg-orange-500 hover:text-white transition"
+                                    >
+                                        {option}
+                                    </button>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setSelectedFilterOption((prev) => ({
+                                        ...prev,
+                                        [activeFilter]: defaultFilterValues[activeFilter] || "",
+                                    }));
+                                    setActiveFilter(null);
+                                }}
+                                className="mt-4 text-red-500 hover:underline"
+                            >
+                                Cancel
+                            </button>
 
-
-
-            {/* ✅ Chatbot Window (modal style) */}
-            {isChatOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="relative w-full max-w-lg">
-                        <Chatbot onClose={() => setIsChatOpen(false)} />
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
 
+
+
+                {/* ✅ Chatbot Window (modal style) */}
+                {isChatOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                        <div className="relative w-full max-w-lg">
+                            <Chatbot onClose={() => setIsChatOpen(false)} />
+                        </div>
+                    </div>
+                )}
+
+            </div>
         </div>
     );
 }

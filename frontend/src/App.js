@@ -12,6 +12,8 @@ import NutritionCard from './component/NutritionCard.jsx';
 import Chatbot from './component/Chatbot.jsx';
 import RecipeCard from './component/RecipeCard.jsx';
 import SharedRecipePage from './component/SharedRecipePage.jsx';
+import StarRating from './component/StarRating.jsx';
+
 
 
 
@@ -28,6 +30,10 @@ const router = createBrowserRouter([
   {path: "/chatbot", element:<Chatbot/>},
   {path: "/recipe/:id", element: <RecipeCard />},
   {path: "/sharedRecipe/:recipeId", element: <SharedRecipePage />},
+  {path: "*", element: <div className='text-3xl font-bold text-center mt-20'>404! Page Not Found</div> },
+  {path: "/rating", element: <StarRating />},
+
+  
 
 ]);
 

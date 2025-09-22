@@ -33,6 +33,7 @@ app.use("/api", chatRoute);
 // ========= Recipe Save Route ========= //
 app.use("/api/recipes", recipeRoute);
 
+
 // ========= User Routes ========= //
 app.use("/api/v1/user", userRoute);
 
@@ -93,27 +94,44 @@ app.get("/recipesearch", async (req, res) => {
 
 // ========= Recipe Generator Route ========= //
 app.get("/recipestream", async (req, res) => {
-    const { ingredients, mealType, cuisine, cookingTime, complexity } = req.query;
+    const { ingredients, mealType, cuisine, cookingTime, complexity, name } = req.query;
 
-    if (!ingredients || !ingredients.trim()) {
-        return res.status(400).json({ error: "Ingredients are required" });
+    let prompt = [];
+
+    // 🧠 If recipe name is provided, generate based on name only
+    if (name && name.trim()) {
+        prompt = [
+            `Generate a detailed recipe for "${name}".`,
+            "Include the following sections:",
+            "- Recipe Name",
+            "- Short Description",
+            "- Ingredients List",
+            "- Cooking Time",
+            "- Servings",
+            "- Preparation Steps",
+            "- Cooking Steps (at least 200 words)",
+            "- Nutritional Info (Calories, Protein, Carbs, Fat, Fiber)",
+            "- If no authentic recipe is found, say: No authentic recipe found.",
+        ];
+    } 
+    // 🍳 Else, use ingredient-based generation
+    else if (ingredients && ingredients.trim()) {
+        prompt = [
+            "Generate a recipe that incorporates the following details:",
+            `[Ingredients: ${ingredients}]`,
+            `[Meal type: ${mealType || "any"}]`,
+            `[Cuisine preference: ${cuisine || "Indian"}]`,
+            `[Cooking time: ${cookingTime || "least possible"}]`,
+            `[Complexity: ${complexity || "easy"}]`,
+            "Provide:- Recipe Name- Short Description- Ingredients (only from provided list)- Cooking Time- Servings- Preparation Steps- Cooking Steps, at least 200 words",
+            "- Provide nutritional information (Calories, Protein, Carbs, Fat, Fiber, etc.)",
+            "- If no authentic recipe is possible, say: No authentic recipe found with the given inputs."
+        ];
+    } 
+    // ❌ Neither name nor ingredients sent
+    else {
+        return res.status(400).json({ error: "Either recipe name or ingredients are required" });
     }
-
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders?.();
-
-    const prompt = [
-        "Generate a recipe that incorporates the following details:",
-        `[Ingredients: ${ingredients}]`,
-        `[Meal type: ${mealType || "any"}]`,
-        `[Cuisine preference: ${cuisine || "Indian"}]`,
-        `[Cooking time: ${cookingTime || "least possible"}]`,
-        `[Complexity: ${complexity || "easy"}]`,
-        "Provide:- Recipe Name- Short Description- Ingredients (only from provided list)- Cooking Time- Servings- Preparation Steps- Cooking Steps,at least 200 words",
-        "- Provide nutritional information (Calories, Protein, Carbs, Fat, Fiber, etc.)- If no authentic recipe is possible, say: No authentic recipe found with the given inputs.`);",
-    ];
 
     const messages = [
         { role: "system", content: "You are a helpful chef assistant." },
@@ -129,6 +147,11 @@ app.get("/recipestream", async (req, res) => {
             messages,
             stream: true,
         });
+
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        res.flushHeaders?.();
 
         for await (const chunk of completion) {
             if (chunk.choices[0]?.delta?.content) {

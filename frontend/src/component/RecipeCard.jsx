@@ -1,5 +1,5 @@
 import React from "react";
-import { FaBookmark, FaShareAlt, FaStar } from "react-icons/fa";
+import { FaBookmark } from "react-icons/fa";
 
 const RecipeCard = ({
   recipes,
@@ -42,24 +42,18 @@ const RecipeCard = ({
           {/* Content */}
           <div className="flex flex-col bg-gray-800 p-4 flex-grow gap-0">
             <div className="text-center">
-              <h2 className="text-lg font-bold text-white truncate">{recipe.name}</h2>
+              <h2
+                className="text-lg font-bold text-white truncate underline hover:text-yellow-300 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCardClick(recipe);
+                }}
+              >
+                {recipe.name}
+              </h2>
+
             </div>
 
-            <div className="flex justify-between mt-auto text-xl text-yellow-500">
-              <button
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1 hover:text-white transition  bg-black p-2 rounded-lg"
-              >
-                <FaShareAlt />
-              </button>
-
-              <button
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1 hover:text-white transition  bg-black p-2 rounded-lg"
-              >
-                <FaStar />
-              </button>
-            </div>
           </div>
         </div>
       ))}

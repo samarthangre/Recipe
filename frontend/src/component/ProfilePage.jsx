@@ -11,6 +11,9 @@ function ProfilePage() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showSavedRecipes, setShowSavedRecipes] = useState(false);
+  const [myRatings, setMyRatings] = useState([]);
+  const [showMyRatings, setShowMyRatings] = useState(false);
+  const [loadingRatings, setLoadingRatings] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -24,6 +27,7 @@ function ProfilePage() {
     setUser(JSON.parse(storedUser));
   }, [navigate]);
 
+  // Fetch user's saved recipes
   const fetchSavedRecipes = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/recipes/saved", {
@@ -68,70 +72,83 @@ function ProfilePage() {
     }
   };
 
+  // fetch recipe
   const fetchFullRecipe = async (recipe) => {
-    setSelectedRecipe({
-      name: recipe.name,
-      content: "",
-      ingredientsList: recipe.ingredientsList || [],
-      videoLink: recipe.videoLink,
-      orderLink: recipe.orderLink,
-    });
+  setSelectedRecipe({
+    name: recipe.name,
+    content: "",
+    videoLink: recipe.videoLink || `https://www.youtube.com/results?search_query=${encodeURIComponent(recipe.name + " recipe")}`,
+    orderLink: recipe.orderLink || `https://www.zomato.com/search?q=${encodeURIComponent(recipe.name)}`
+  });
 
-    setLoading(true);
+  setLoading(true);
+
+  try {
+    const params = new URLSearchParams({ name: recipe.name });
+
+    const response = await fetch(`http://localhost:5000/recipestream?${params.toString()}`);
+
+    if (!response.ok || !response.body) throw new Error("Failed to fetch recipe");
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullContent = "";
+
+    const processLine = (line) => {
+      if (line.startsWith("data:")) {
+        try {
+          const data = JSON.parse(line.replace("data:", "").trim());
+          if (data.action === "chunk" && data.chunk) {
+            fullContent += data.chunk;
+            setSelectedRecipe((prev) => ({
+              ...prev,
+              content: fullContent,
+            }));
+          }
+          if (data.action === "close") setLoading(false);
+        } catch (err) {
+          console.error("Error parsing line:", line, err);
+        }
+      }
+    };
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true }).trim().split("\n\n");
+      chunk.forEach(processLine);
+    }
+  } catch (err) {
+    console.error("Fetch recipe error:", err);
+    setSelectedRecipe((prev) => ({
+      ...prev,
+      content: "⚠️ Failed to generate recipe. Please try again.",
+    }));
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  // Fetch user's ratings
+  const handleMyRatings = async () => {
+    setShowSavedRecipes(false); // hide saved recipes section
+    setShowMyRatings(true); // show ratings section
+    setLoadingRatings(true);
+
     try {
-      const params = new URLSearchParams({
-        ingredients: recipe.ingredientsList?.join("\n") || "",
-        mealType: "dinner",
-        cuisine: "Indian",
-        diet: "balanced",
-        cookingTime: "30 minutes",
-        complexity: "easy",
+      const response = await axios.get("http://localhost:5000/api/recipes/userratings", {
+        withCredentials: true,
       });
 
-      const response = await fetch(
-        `http://localhost:5000/recipestream?${params.toString()}`
-      );
-
-      if (!response.ok || !response.body) throw new Error("Failed to fetch recipe");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let fullContent = "";
-
-      const processLine = (line) => {
-        if (line.startsWith("data:")) {
-          try {
-            const data = JSON.parse(line.replace("data:", "").trim());
-            if (data.action === "chunk" && data.chunk) {
-              fullContent += data.chunk;
-              setSelectedRecipe((prev) => ({
-                ...prev,
-                content: fullContent,
-              }));
-            }
-            if (data.action === "close") setLoading(false);
-          } catch (err) {
-            console.error("Error parsing line:", line, err);
-          }
-        }
-      };
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true }).trim().split("\n\n");
-        chunk.forEach(processLine);
-      }
-    } catch (err) {
-      console.error("Fetch recipe error:", err);
-      setSelectedRecipe((prev) => ({
-        ...prev,
-        content: "⚠️ Failed to generate recipe. Please try again.",
-      }));
+      setMyRatings(response.data.ratedRecipes || []);
+    } catch (error) {
+      console.error("Failed to fetch user ratings:", error);
     } finally {
-      setLoading(false);
+      setLoadingRatings(false);
     }
   };
+  
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -161,8 +178,13 @@ function ProfilePage() {
             >
               Saved Recipes
             </button>
-            <button className="py-2 bg-slate-300 w-full text-black">My Reviews</button>
+
+            <button
+              onClick={handleMyRatings}
+              className="py-2 bg-slate-300 w-full text-black">My Ratings</button>
+
             <button className="py-2 bg-slate-300 w-full text-black">Settings</button>
+
             <button onClick={() => navigate("/HomePage")} className="py-2 bg-slate-300 w-full text-black">Home</button>
           </div>
 
@@ -201,6 +223,34 @@ function ProfilePage() {
             )}
           </div>
         )}
+
+        {showMyRatings && (
+          <div className="mt-10">
+            <h2 className="text-2xl font-semibold mb-4">My Ratings</h2>
+            {loadingRatings ? (
+              <p>Loading your ratings...</p>
+            ) : myRatings.length === 0 ? (
+              <p>You haven't rated any recipes yet.</p>
+            ) : (
+              <ul>
+                {myRatings.map(({ recipeId, rating, name, image }) => (
+                  <li key={recipeId} className="flex items-center mb-3 gap-3">
+                    <img
+                      src={image || "/default-recipe.jpg"}
+                      alt={name || "Recipe"}
+                      width={50}
+                      height={50}
+                      className="rounded-md"
+                    />
+                    <span>{name || "Recipe Name"}</span>
+                    <span className="ml-auto font-semibold">{rating} ⭐</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
       </div>
 
       {/* Full Recipe Modal (same as HomePage, or extract to <FullRecipeModal />) */}
@@ -213,6 +263,8 @@ function ProfilePage() {
             ) : (
               <p className="whitespace-pre-line text-gray-700">{selectedRecipe.content}</p>
             )}
+
+
             <button
               onClick={() => setSelectedRecipe(null)}
               className="mt-4 bg-yellow-500 px-4 py-2 text-white rounded"
