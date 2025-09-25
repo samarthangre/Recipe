@@ -57,7 +57,7 @@ const Login = () => {
               <img src="/logo.png" alt="Logo" className="h-10 w-auto" /></a>
             Made for you!
           </h1>
-          <h2 className="text-2xl text-center mb-6 text-slate-900">
+          <h2 className="text-2xl text-center mb-6 text-slate-200">
             "Hungry? Let's fix that in minutes"
           </h2>
           <form onSubmit={onSubmitHandler} className="space-y-4">
@@ -88,7 +88,12 @@ const Login = () => {
               Log In
             </button>
           </form>
-          <p className="mt-2 text-center text-white">Forgot Password</p>
+          <p className="mt-2 text-center text-white">
+            <Link to="/forgot-password" className="underline hover:text-yellow-300 font-semibold">
+              Forgot Password?
+            </Link>
+          </p>
+
           <p className="mt-4 text-center text-white">
             Don’t have an account?{' '}
             <Link

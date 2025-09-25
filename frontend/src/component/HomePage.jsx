@@ -15,6 +15,10 @@ function HomePage() {
     const [loading, setLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState(null);
     const [nutritionData, setNutritionData] = useState(null);
+    const [showNutrition, setShowNutrition] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [showOnlyRecipes, setShowOnlyRecipes] = useState(false);
+    const [recipeRatings, setRecipeRatings] = useState({});
     const [selectedFilterOption, setSelectedFilterOption] = useState({
         Cuisine: "",
         Mealtype: "",
@@ -22,12 +26,6 @@ function HomePage() {
         Diet: "",
         Rating: "",
     });
-    const [showNutrition, setShowNutrition] = useState(false);
-    const [isChatOpen, setIsChatOpen] = useState(false);
-    const [showOnlyRecipes, setShowOnlyRecipes] = useState(false);
-    const [recipeRatings, setRecipeRatings] = useState({});
-
-
 
     const filterOptions = {
         Cuisine: ["Indian", "Italian", "Chinese", "Mexican"],
@@ -37,48 +35,59 @@ function HomePage() {
         Rating: ["⭐ 1+", "⭐ 2+", "⭐ 3+", "⭐ 4+", "⭐ 5"],
     };
 
+    // ===== Loading Spinner =====
     const Spinner = () => (
         <div className="flex justify-center items-center h-40">
             <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-orange-500"></div>
         </div>
     );
 
-    const fetchNutrition = async (ingredients) => {
+    // ===== Fetch nutrition info =====
+    const fetchNutrition = async (recipeContent) => {
         try {
-            console.log("Fetching nutrition for ingredients:", ingredients);
-
             const res = await fetch("http://localhost:5000/nutrition", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ingredients }),
+                body: JSON.stringify({ recipeContent }),
             });
 
             const data = await res.json();
-            console.log("Nutrition response:", data);
             setNutritionData(data);
         } catch (err) {
             console.error("❌ Nutrition fetch error:", err);
         }
     };
 
+
     // ===Share Recipes ==
-    const handleShare = (recipe) => {
-        const shareUrl = `${window.location.origin}/recipes/share/${recipe.id}`;
-        const shareText = `Check out this recipe: ${recipe.name}`;
+  const handleShare = (recipe) => {
+  // Create an object with only the necessary recipe data
+  const dataToShare = {
+    name: recipe.name,
+    content: recipe.content,
+    image: recipe.image,
+    videoLink: recipe.videoLink,
+    orderLink: recipe.orderLink,
+  };
 
+  // Encode data as base64 to keep URL safe and shorter than JSON.stringify
+  const encodedData = btoa(JSON.stringify(dataToShare));
 
-        if (navigator.share) {
-            navigator.share({
-                title: recipe.name,
-                text: shareText,
-                url: shareUrl,
-            }).catch((err) => console.error("Share failed:", err));
-        } else {
-            navigator.clipboard.writeText(shareUrl)
-                .then(() => alert("🔗 Share link copied to clipboard!"))
-                .catch((err) => console.error("Clipboard error:", err));
-        }
-    };
+  // Construct URL with encoded data in URL hash (so it's not sent to server)
+  const shareUrl = `${window.location.origin}/recipes/share#${encodedData}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: recipe.name,
+      text: `Check out this recipe: ${recipe.name}`,
+      url: shareUrl,
+    }).catch((err) => console.error("Share failed:", err));
+  } else {
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => alert("🔗 Share link copied to clipboard!"))
+      .catch((err) => console.error("Clipboard error:", err));
+  }
+};
 
     // ===== Fetch recipes list =====
     const handleGenerate = async () => {
@@ -128,6 +137,7 @@ function HomePage() {
             setLoading(false);
         }
     };
+
     // ==default filter values for cancel action
     const defaultFilterValues = {
         Cuisine: "",
@@ -142,19 +152,33 @@ function HomePage() {
         const isAlreadySaved = savedRecipes.has(recipe.id);
 
         const url = isAlreadySaved
-            ? "http://localhost:5000/api/recipes/unsave"  // Assume this exists
+            ? "http://localhost:5000/api/recipes/unsave"
             : "http://localhost:5000/api/recipes/save";
+
+        const body = {
+            recipeId: recipe.id,
+            name: recipe.name,
+            image: recipe.image,
+        };
+
+        // If saving (not unsaving), include full recipe details
+        if (!isAlreadySaved) {
+            body.content = recipe.content || "";
+            body.ingredientsList = recipe.ingredientsList || [];
+            body.videoLink = recipe.videoLink || "";
+            body.orderLink = recipe.orderLink || "";
+            body.cuisine = selectedFilterOption.Cuisine || "";
+            body.mealType = selectedFilterOption.Mealtype || "";
+            body.diet = selectedFilterOption.Diet || "";
+            body.cookingTime = selectedFilterOption.Recipetime || "";
+            body.complexity = "easy"; // default for now
+        }
 
         const response = await fetch(url, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                recipeId: recipe.id,
-                name: recipe.name,
-                image: recipe.image,
-
-            }),
+            body: JSON.stringify(body),
         });
 
         const data = await response.json();
@@ -176,13 +200,13 @@ function HomePage() {
 
 
     // ===== Handle star click for rating =====
-    const handleRateRecipe = async (recipeId, rating) => {
+    const handleRateRecipe = async (recipeId, rating, recipeName, recipeImage) => {
         try {
             const res = await fetch("http://localhost:5000/api/recipes/rate", {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ recipeId, rating }),
+                body: JSON.stringify({ recipeId, rating, recipeName, recipeImage }),
             });
 
             const data = await res.json();
@@ -202,9 +226,15 @@ function HomePage() {
     // ===== Fetch full recipe =====
     const fetchFullRecipe = async (recipe) => {
         setSelectedRecipe({
-            name: recipe.name, content: "", ingredientsList: recipe.ingredientsList, videoLink: recipe.videoLink,
+            id: recipe.id,
+            name: recipe.name,
+            image: recipe.image,
+            content: "",
+            ingredientsList: recipe.ingredientsList,
+            videoLink: recipe.videoLink,
             orderLink: recipe.orderLink
         });
+
         setLoading(true);
 
         try {
@@ -327,7 +357,7 @@ function HomePage() {
                     {loading && <Spinner />}
 
                     {recipes.length > 0 && showOnlyRecipes && (
-                        <div className="fixed inset-0 z-50 flex flex-col items-center justify-start bg-black bg-opacity-80 overflow-auto p-6">
+                        <div className="fixed inset-0 z-50 flex flex-col items-center justify-start bg-black bg-opacity-85 overflow-auto p-6">
                             <button
                                 onClick={() => {
                                     setShowOnlyRecipes(false);
@@ -347,7 +377,7 @@ function HomePage() {
                                         style={{ height: "300px" }}
                                     >
                                         <div className="w-full h-40 overflow-hidden flex-shrink-0 relative">
-                                            <button
+                                            {/* <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     toggleSaveRecipe(recipe);
@@ -359,7 +389,7 @@ function HomePage() {
                                                 ) : (
                                                     <FaBookmark className="text-white" />
                                                 )}
-                                            </button>
+                                            </button> */}
                                             <img
                                                 alt={recipe.name}
                                                 src={recipe.image}
@@ -367,13 +397,21 @@ function HomePage() {
                                             />
                                         </div>
                                         <div className="flex flex-col bg-gray-800 p-4 flex-grow gap-0">
-                                            <div className="text-center">
-                                                <h2 className="text-lg font-bold text-white truncate">
-                                                    {recipe.name}
-                                                </h2>
-                                            </div>
-                                            <div className="flex justify-between mt-auto text-xl text-yellow-500">
-                                                <button
+                                            <h2 className="text-lg font-bold text-white truncate">
+                                                {recipe.name}
+                                            </h2>
+
+                                            <div className="flex justify-between mt-auto text-xl text-yellow-500 pt-0 gap-2 hover:text-white">
+                                                <StarRating
+                                                    recipeId={recipe.id}
+                                                    initialRating={recipeRatings[recipe.id] || 0}
+                                                    onRate={handleRateRecipe}
+                                                    recipeName={recipe.name}
+                                                    recipeImage={recipe.image}
+                                                />
+
+
+                                                {/* <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleShare(recipe);
@@ -381,21 +419,12 @@ function HomePage() {
                                                     className="flex items-center gap-1 hover:text-white transition bg-black p-2 rounded-lg"
                                                 >
                                                     <FaShareAlt />
-                                                </button>
-
-
-                                                <StarRating
-                                                    recipeId={recipe.id}
-                                                    initialRating={recipeRatings[recipe.id] || 0}
-                                                    onRate={handleRateRecipe}
-                                                />
-
-
-
-
+                                                </button> */}
                                             </div>
                                         </div>
+
                                     </div>
+
                                 ))}
                             </div>
                         </div>
@@ -443,92 +472,122 @@ function HomePage() {
                 {/* Full Recipe Modal */}
                 {selectedRecipe && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50">
-                        <div className="bg-white text-black rounded-2xl shadow-lg max-w-2xl w-full p-6 pr-8 overflow-y-auto max-h-[80vh]">
+                        <div className="bg-white text-black rounded-2xl shadow-xl max-w-5xl w-full p-6 overflow-y-auto max-h-[85vh] flex gap-6">
+                            <div className="bg-white text-black rounded-2xl shadow-xl max-w-5xl w-full p-6 overflow-y-auto max-h-[85vh] flex gap-6 relative">
+                                {/* Close button */}
+                                <button
+                                    onClick={() => {
+                                        setSelectedRecipe(null);
+                                        setShowNutrition(false);
+                                        setNutritionData(null);
+                                    }}
+                                    className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-3xl font-bold"
+                                    aria-label="Close"
+                                >
+                                    &times;
+                                </button>
 
-                            <h2 className="text-2xl font-bold mb-4">{selectedRecipe.name}</h2>
+                                {/* Left: Recipe Image */}
+                                <div className="w-1/2 relative">
+                                    {/* Save Icon on top left of image */}
+                                    <button
+                                        onClick={() => toggleSaveRecipe(selectedRecipe)}
+                                        className="absolute top-4 left-4 z-10 bg-black bg-opacity-50 p-2 rounded-full text-yellow-400 hover:bg-opacity-80 transition"
+                                        aria-label={savedRecipes.has(selectedRecipe.id) ? "Unsave recipe" : "Save recipe"}
+                                    >
+                                        {savedRecipes.has(selectedRecipe.id) ? (
+                                            <FaBookmark className="text-yellow-400" />
+                                        ) : (
+                                            <FaBookmark className="text-white" />
+                                        )}
+                                    </button>
 
-                            {loading ? (
-                                <p className="text-gray-500">⏳ Generating recipe...</p>
-                            ) : selectedRecipe.content ? (
-                                <>
-                                    {/* YouTube Link below recipe content */}
+                                    <img
+                                        src={selectedRecipe.image}
+                                        alt={selectedRecipe.name}
+                                        className="rounded-xl object-cover w-full h-full max-h-[500px]"
+                                    />
+                                </div>
+
+                                {/* Right: Recipe Details */}
+                                <div className="flex-1 flex flex-col">
+                                    <h2 className="text-3xl font-bold mb-4">{selectedRecipe.name}</h2>
                                     {selectedRecipe.videoLink && (
                                         <a
                                             href={selectedRecipe.videoLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-red-500 underline mt-4 inline-block"
+                                            className="text-blue-600 underline"
                                         >
-                                            Watch Recipe Video For More Ideas
+                                            📺 Watch Recipe Video
                                         </a>
                                     )}
 
-                                    <p className="whitespace-pre-line text-gray-700">{selectedRecipe.content}</p>
+                                    {loading ? (
+                                        <p className="text-gray-500">⏳ Generating recipe...</p>
+                                    ) : selectedRecipe.content ? (
+                                        <>
+                                            <p className="whitespace-pre-line text-gray-700 overflow-y-auto max-h-[300px]">
+                                                {selectedRecipe.content}
+                                            </p>
 
-                                    {/* Zomato Link at the bottom before buttons */}
-                                    {selectedRecipe.orderLink && (
-                                        <div className=" p-2 gap-2 justify-between flex">
-                                            <a
-                                                href={selectedRecipe.orderLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-red-500 underline mt-4 inline-block"
-                                            >
-                                                Buy Now
-                                            </a>
+                                            {/* Links */}
+                                            <div className="mt-4 flex gap-4">
+                                                {selectedRecipe.orderLink && (
+                                                    <a
+                                                        href={selectedRecipe.orderLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-red-600 underline"
+                                                    >
+                                                        🍽️ Order on Zomato
+                                                    </a>
+                                                )}
+                                            </div>
 
-                                            <a
-                                                href="https://blinkit.com"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-red-500 underline mt-4 inline-block"
-                                            >
-                                                Buy missing ingredients
-                                            </a>
-                                        </div>
+                                            {/* Nutrition Card */}
+                                            {showNutrition && nutritionData && (
+                                                <div className="mt-4 pb-2">
+                                                    <NutritionCard data={nutritionData} />
+                                                </div>
+                                            )}
+
+                                            {/* Show Nutrition and Share buttons at bottom */}
+                                            {!loading && (
+                                                <div className="mt-auto flex gap-4">
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (!showNutrition && selectedRecipe.content) {
+                                                                await fetchNutrition(selectedRecipe.content);
+                                                            }
+                                                            setShowNutrition(prev => !prev);
+                                                        }}
+                                                        className="bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-600 flex items-center gap-1"
+                                                        aria-label="Nutirition Info"
+                                                    >
+                                                        {showNutrition ? "Hide Nutrition" : "Show Nutrition"}
+                                                    </button>
+
+
+                                                    <button
+                                                        onClick={() => handleShare(selectedRecipe)}
+                                                        className="bg-yellow-400 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 flex items-center gap-1"
+                                                        aria-label="Share Recipe"
+                                                    >
+                                                        <FaShareAlt /> Share
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="text-gray-400">No recipe generated yet.</p>
                                     )}
-                                </>
-                            ) : (
-                                <p className="text-gray-400">No recipe generated yet.</p>
-                            )}
-
-                            {/* Nutrition Card */}
-                            {showNutrition && nutritionData && (
-                                <div className="mt-4 w-full">
-                                    <NutritionCard data={nutritionData} />
                                 </div>
-                            )}
-
-                            {/* Buttons */}
-                            {!loading && (
-                                <div className="flex justify-between gap-2 mt-6">
-                                    <button
-                                        onClick={async () => {
-                                            if (!showNutrition) {
-                                                await fetchNutrition(selectedRecipe.ingredientsList);
-                                            }
-                                            setShowNutrition(!showNutrition);
-                                        }}
-                                        className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
-                                    >
-                                        {showNutrition ? "Hide Nutrition" : "Show Nutrition"}
-                                    </button>
-
-                                    <button
-                                        onClick={() => {
-                                            setSelectedRecipe(null);
-                                            setShowNutrition(false);
-                                            setNutritionData(null);
-                                        }}
-                                        className="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition flex-1"
-                                    >
-                                        Back
-                                    </button>
-                                </div>
-                            )}
+                            </div>
                         </div>
                     </div>
                 )}
+
 
 
 

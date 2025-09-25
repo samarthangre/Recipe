@@ -101,7 +101,7 @@ app.get("/recipestream", async (req, res) => {
     // 🧠 If recipe name is provided, generate based on name only
     if (name && name.trim()) {
         prompt = [
-            `Generate a detailed recipe for "${name}".`,
+            `Generate a detailed recipe for "${name}" but as short as possible`,
             "Include the following sections:",
             "- Recipe Name",
             "- Short Description",
@@ -113,7 +113,7 @@ app.get("/recipestream", async (req, res) => {
             "- Nutritional Info (Calories, Protein, Carbs, Fat, Fiber)",
             "- If no authentic recipe is found, say: No authentic recipe found.",
         ];
-    } 
+    }
     // 🍳 Else, use ingredient-based generation
     else if (ingredients && ingredients.trim()) {
         prompt = [
@@ -124,10 +124,11 @@ app.get("/recipestream", async (req, res) => {
             `[Cooking time: ${cookingTime || "least possible"}]`,
             `[Complexity: ${complexity || "easy"}]`,
             "Provide:- Recipe Name- Short Description- Ingredients (only from provided list)- Cooking Time- Servings- Preparation Steps- Cooking Steps, at least 200 words",
-            "- Provide nutritional information (Calories, Protein, Carbs, Fat, Fiber, etc.)",
+            
             "- If no authentic recipe is possible, say: No authentic recipe found with the given inputs."
         ];
-    } 
+
+    }
     // ❌ Neither name nor ingredients sent
     else {
         return res.status(400).json({ error: "Either recipe name or ingredients are required" });
@@ -177,28 +178,20 @@ app.get("/recipestream", async (req, res) => {
 //====== Nutrition Analysis Route ======//
 
 app.post("/nutrition", async (req, res) => {
-    let { ingredients } = req.body;
+    let { recipeContent } = req.body;
 
-    if (!ingredients || (Array.isArray(ingredients) && ingredients.length === 0)) {
-        return res.status(400).json({ error: "Ingredients are required" });
-    }
-
-    // Normalize ingredients to an array
-    if (typeof ingredients === "string") {
-        ingredients = ingredients
-            .split("\n")
-            .map(i => i.trim())
-            .filter(Boolean);
+    if (!recipeContent || typeof recipeContent !== "string" || recipeContent.trim() === "") {
+        return res.status(400).json({ error: "Recipe content is required" });
     }
 
     try {
         const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
         const aiModel = "llama-3.3-70b-versatile";
 
-        // Prompt for AI
         const prompt = [
             "You are a nutrition expert.",
-            `Provide the nutrition information for the following ingredients (calories, protein, carbs, fat) for 1 serving: ${ingredients.join(", ")}.`,
+            `Given the following recipe, extract the list of ingredients and provide nutrition information (calories, protein, carbs, fat) for 1 serving:`,
+            `"${recipeContent}"`,
             "Return a JSON object ONLY in this format, no extra text:",
             `{
         "totals": { "calories": 0, "protein": 0, "carbs": 0, "fat": 0 },
@@ -216,12 +209,11 @@ app.post("/nutrition", async (req, res) => {
         const completion = await client.chat.completions.create({
             model: aiModel,
             messages,
-            stream: false, // single response
+            stream: false,
         });
 
         const aiResponse = completion.choices[0]?.message?.content || "";
 
-        // Extract JSON safely using regex
         const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
             console.error("No JSON found in AI response:", aiResponse);
@@ -242,8 +234,6 @@ app.post("/nutrition", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch nutrition from Groq" });
     }
 });
-
-
 
 
 // ========= Start Server ========= //

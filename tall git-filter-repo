@@ -1,0 +1,11 @@
+[33mcommit a5d2ba0357c201617203d798734e8459388af788[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Samiksha <samiksha4102@gmail.com>
+Date:   Mon Sep 22 14:36:19 2025 +0530
+
+    Remove .env from repo and add to .gitignore
+
+[33mcommit ef9df54a53348936fb1b25bda9718c11f6d2a2d9[m
+Author: Samiksha <samiksha4102@gmail.com>
+Date:   Mon Sep 22 14:34:43 2025 +0530
+
+    forth

@@ -1,59 +1,67 @@
 import React from "react";
 import { FaBookmark } from "react-icons/fa";
 
-const RecipeCard = ({
-  recipes,
-  savedRecipes,
-  onCardClick,
-  onSaveClick,
-}) => {
+const RecipeCard = ({ recipes, savedRecipes = new Set(), onCardClick, onSaveClick, ratings = {} }) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10 max-w-6xl mx-auto">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {recipes.map((recipe) => (
         <div
           key={recipe.id}
+          className="bg-black text-white rounded-lg shadow-md overflow-hidden transform transition hover:scale-105 relative flex flex-col"
           onClick={() => onCardClick(recipe)}
-          className="cursor-pointer rounded-lg overflow-hidden shadow-lg hover:scale-105 transform transition duration-300 flex flex-col"
-          style={{ height: "300px" }}
+          style={{ height: "295px" }} // same fixed height
         >
-          {/* Image & Save */}
-          <div className="w-full h-40 overflow-hidden flex-shrink-0 relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onSaveClick(recipe);
-              }}
-              className="absolute top-2 right-2 flex items-center justify-center text-white bg-black bg-opacity-50 p-2 rounded-full hover:bg-opacity-80 transition"
-            >
-              {savedRecipes.has(recipe.id) ? (
-                <FaBookmark className="text-yellow-400" />
-              ) : (
-                <FaBookmark className="text-white" />
-              )}
-            </button>
-
+          {/* Image + Bookmark */}
+          <div className="relative flex-shrink-0">
             <img
-              alt={recipe.name}
               src={recipe.image}
-              className="w-full h-full object-cover"
+              alt={recipe.name}
+              className="w-full h-48 object-cover"
             />
-          </div>
 
-          {/* Content */}
-          <div className="flex flex-col bg-gray-800 p-4 flex-grow gap-0">
-            <div className="text-center">
-              <h2
-                className="text-lg font-bold text-white truncate underline hover:text-yellow-300 cursor-pointer"
+            {/* Bookmark button (only show if onSaveClick exists) */}
+            {onSaveClick && (
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCardClick(recipe);
+                  onSaveClick(recipe);
                 }}
+                className="absolute top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-full"
               >
-                {recipe.name}
-              </h2>
+                {savedRecipes.has(recipe.id) ? (
+                  <FaBookmark className="text-yellow-400" />
+                ) : (
+                  <FaBookmark className="text-white" />
+                )}
+              </button>
+            )}
+          </div>
 
-            </div>
+          {/* Recipe name and rating */}
+          <div className="p-4 flex flex-col justify-between flex-grow">
+            <h2
+              className="text-lg font-semibold  mt-3 truncate text-center"
+              title={recipe.name}
+              style={{ minHeight: "3rem" }}
+            >
+              {recipe.name}
+            </h2>
 
+            {/* Show star rating if available */}
+            {ratings[recipe.id] !== undefined && (
+              <div className="flex items-center justify-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    className={`text-xl ${
+                      ratings[recipe.id] >= star ? "text-yellow-500" : "text-gray-300"
+                    }`}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ))}

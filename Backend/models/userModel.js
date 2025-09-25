@@ -3,7 +3,22 @@ import mongoose from 'mongoose';
 const savedRecipeSchema = new mongoose.Schema({
     recipeId: String,
     name: String,
-    image: String
+    image: String,
+    content: String,
+    ingredientsList: [String],
+    videoLink: String,
+    orderLink: String,
+    cuisine: String,
+    mealType: String,
+    diet: String,
+    cookingTime: String,
+    complexity: String,
+    nutrition: {
+        calories: String,
+        protein: String,
+        fat: String,
+        carbs: String,
+    }
 });
 
 const userModel = new mongoose.Schema({

@@ -13,9 +13,7 @@ import Chatbot from './component/Chatbot.jsx';
 import RecipeCard from './component/RecipeCard.jsx';
 import SharedRecipePage from './component/SharedRecipePage.jsx';
 import StarRating from './component/StarRating.jsx';
-
-
-
+import ForgotPassword from './component/ForgotPassword.jsx';
 
 const router = createBrowserRouter([
   {path: "/", element:<LandingPage />},
@@ -29,11 +27,10 @@ const router = createBrowserRouter([
   {path: "/nutritionCard", element:<NutritionCard />},
   {path: "/chatbot", element:<Chatbot/>},
   {path: "/recipe/:id", element: <RecipeCard />},
-  {path: "/sharedRecipe/:recipeId", element: <SharedRecipePage />},
+  {path: "/recipes/share/:recipeId", element: <SharedRecipePage />},
   {path: "*", element: <div className='text-3xl font-bold text-center mt-20'>404! Page Not Found</div> },
   {path: "/rating", element: <StarRating />},
-
-  
+  {path:"/forgot-password", element:<ForgotPassword />},
 
 ]);
 

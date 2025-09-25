@@ -1,60 +1,59 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 
-const SharedRecipePage = () => {
-    const { recipeId } = useParams();
-    const [recipe, setRecipe] = useState(null);
-    const [loading, setLoading] = useState(true);
+function SharedRecipePage() {
+  const [recipe, setRecipe] = useState(null);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchRecipe = async () => {
-            try {
-                const res = await fetch(
-                    `http://localhost:8080/api/recipes/share/${recipeId}`
-                );
+  useEffect(() => {
+    // Get the encoded data from URL hash
+    const hash = window.location.hash.substring(1); // Remove '#'
 
-                if (!res.ok) {
-                    throw new Error("Recipe not found");
-                }
-                const data = await res.json();
-                setRecipe(data.recipe);
-            } catch (error) {
-                console.error("Error fetching recipe:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRecipe();
-    }, [recipeId]);
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-screen text-white">
-                Loading recipe...
-            </div>
-        );
+    if (!hash) {
+      setError("No recipe data found.");
+      return;
     }
 
-    if (!recipe) {
-        return (
-            <div className="flex justify-center items-center h-screen text-red-500">
-                ❌ Recipe not found
-            </div>
-        );
+    try {
+      // Decode base64 and parse JSON
+      const decoded = atob(hash);
+      const recipeData = JSON.parse(decoded);
+      setRecipe(recipeData);
+    } catch (err) {
+      setError("Failed to decode recipe data.");
     }
+  }, []);
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
-            <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
-            <img
-                src={recipe.image}
-                alt={recipe.name}
-                className="w-96 h-96 object-cover rounded-lg shadow-lg mb-6"
-            />
-            <p className="text-lg">✨ Saved recipe that was shared with you!</p>
-        </div>
-    );
-};
+  if (error) {
+    return <div className="p-6 text-red-600">{error}</div>;
+  }
+
+  if (!recipe) {
+    return <div className="p-6">Loading recipe...</div>;
+  }
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
+      {recipe.image && <img src={recipe.image} alt={recipe.name} className="mb-4 rounded" />}
+      <p className="whitespace-pre-line mb-4">{recipe.content}</p>
+      {recipe.videoLink && (
+        <p>
+          Video:{" "}
+          <a href={recipe.videoLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+            Watch here
+          </a>
+        </p>
+      )}
+      {recipe.orderLink && (
+        <p>
+          Order Ingredients:{" "}
+          <a href={recipe.orderLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+            Click here
+          </a>
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default SharedRecipePage;
