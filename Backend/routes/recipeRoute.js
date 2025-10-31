@@ -110,26 +110,6 @@ router.get("/saved", isAuthenticated, async (req, res) => {
         res.status(500).json({ message: "Server error while fetching recipes." });
     }
 });
-
-// Share a saved recipe by recipeId
-router.get("/share/:recipeId", async (req, res) => {
-    try {
-        const { recipeId } = req.params;
-        const user = await User.findOne({ "savedRecipes.recipeId": recipeId });
-        if (!user) {
-            return res.status(404).json({ message: "Recipe not found." });
-        }
-
-        const recipe = user.savedRecipes.find(r => r.recipeId === recipeId);
-        res.status(200).json({ recipe });
-    } catch (error) {
-        console.error("Error sharing recipe:", error);
-        res.status(500).json({ message: "Server error while sharing recipe." });
-    }
-});
-
-
-
 // rate and unrate a recipe
 router.post("/rate", isAuthenticated, async (req, res) => {
     const { recipeId, recipeName, recipeImage, rating } = req.body;
