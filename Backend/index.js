@@ -22,7 +22,7 @@ app.use(helmet());
 
 // ========= CORS setup ========= //
 const corsOptions = {
-    origin: "https://recipe-backend-gd16.onrender.com",
+    origin: "https://recipe-frontend-7aay.onrender.com",
     credentials: true,
 };
 app.use(cors(corsOptions));
