@@ -5,6 +5,7 @@ import BASE_URL from "../config";
 
 fetch(`${BASE_URL}/api/recipes`);
 
+const BASE_URL = "https://dumbchefs-backend.onrender.com";
 
 const Login = () => {
   const [user, setUser] = useState({ username: '', password: '' });
