@@ -22,7 +22,7 @@ app.use(helmet());
 
 // ========= CORS setup ========= //
 const corsOptions = {
-    origin: "http://localhost:3000",
+    origin: "https://recipe-backend-gd16.onrender.com",
     credentials: true,
 };
 app.use(cors(corsOptions));
