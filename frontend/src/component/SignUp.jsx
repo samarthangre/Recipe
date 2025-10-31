@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import BASE_URL from "../config";
 const SignUp = () => {
     const [user, setUser] = useState({
         fullName: "",
@@ -52,7 +52,7 @@ const SignUp = () => {
 
         try {
             const res = await axios.post(
-                "http://localhost:5000/api/v1/user/signUp",
+                `${BASE_URL}/api/v1/user/signUp`,
                 user,
                 {
                     headers: { "Content-Type": "application/json" },

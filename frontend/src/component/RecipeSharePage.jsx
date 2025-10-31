@@ -1,6 +1,7 @@
 // src/pages/RecipeSharePage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import BASE_URL from "../config";
 
 const RecipeSharePage = () => {
     const { id } = useParams();
@@ -10,7 +11,7 @@ const RecipeSharePage = () => {
     useEffect(() => {
         const fetchSharedRecipe = async () => {
             try {
-                const res = await fetch(`http://localhost:5000/api/recipes/${id}`);
+                const res = await fetch(`${BASE_URL}/api/recipes/${id}`);
                 const data = await res.json();
                 setRecipe(data.recipe);
             } catch (err) {

@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ChatbotIcon from "./ChatbotIcon";
 import ChatMessage from "./ChatMessage";
 import { support_info } from "../support_info";
-
+import BASE_URL from "../config";
 const Chatbot = ({ onClose }) => {
     const [messages, setMessages] = useState([
     { role: "assistant", content: "How can I assist you today? " },
@@ -36,7 +36,7 @@ const Chatbot = ({ onClose }) => {
 
     try {
         // Prepend support_info as system prompt
-        const response = await fetch("http://localhost:5000/api/chat", {
+        const response = await fetch(`${BASE_URL}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

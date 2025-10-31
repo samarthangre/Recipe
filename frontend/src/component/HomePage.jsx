@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import NutritionCard from "./NutritionCard.jsx";
 import Chatbot from "./Chatbot.jsx";
 import StarRating from "./StarRating.jsx";
+import BASE_URL from "../config";
 
 function HomePage() {
     const [ingredients, setIngredients] = useState("");
@@ -45,7 +46,7 @@ function HomePage() {
     // ===== Fetch nutrition info =====
     const fetchNutrition = async (recipeContent) => {
         try {
-            const res = await fetch("http://localhost:5000/nutrition", {
+            const res = await fetch(`${BASE_URL}/nutrition`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ recipeContent }),
@@ -114,7 +115,7 @@ function HomePage() {
             if (selectedFilterOption.Mealtype) params.append("type", selectedFilterOption.Mealtype.trim());
             if (maxReadyTime) params.append("maxReadyTime", maxReadyTime);
 
-            const res = await fetch(`http://localhost:5000/recipesearch?${params.toString()}`);
+            const res = await fetch(`${BASE_URL}/recipesearch?${params.toString()}`);
             const data = await res.json();
 
             if (data.recipes) {
@@ -152,8 +153,8 @@ function HomePage() {
         const isAlreadySaved = savedRecipes.has(recipe.id);
 
         const url = isAlreadySaved
-            ? "http://localhost:5000/api/recipes/unsave"
-            : "http://localhost:5000/api/recipes/save";
+            ? `${BASE_URL}/api/recipes/unsave`
+            : `${BASE_URL}/api/recipes/save`;
 
         const body = {
             recipeId: recipe.id,
@@ -202,7 +203,7 @@ function HomePage() {
     // ===== Handle star click for rating =====
     const handleRateRecipe = async (recipeId, rating, recipeName, recipeImage) => {
         try {
-            const res = await fetch("http://localhost:5000/api/recipes/rate", {
+            const res = await fetch(`${BASE_URL}/api/recipes/rate`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -248,7 +249,7 @@ function HomePage() {
             });
 
             const response = await fetch(
-                `http://localhost:5000/recipestream?${params}`,
+                `${BASE_URL}/recipestream?${params}`,
                 { method: "GET" }
             );
 

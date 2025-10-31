@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+import BASE_URL from "../config";
 const ForgotPassword = () => {
     const [username, setUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -18,7 +18,7 @@ const ForgotPassword = () => {
         }
 
         try {
-            const res = await axios.post('http://localhost:5000/api/v1/user/forgot-password', {
+            const res = await axios.post(`${BASE_URL}/api/v1/user/forgot-password`, {
                 username,
                 newPassword,
                 confirmPassword, // optional, if backend supports it
